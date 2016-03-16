@@ -11,15 +11,11 @@ import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
-import com.facebook.rebound.Spring;
-import com.facebook.rebound.SpringConfig;
-import com.facebook.rebound.SpringListener;
-import com.facebook.rebound.SpringSystem;
-import com.facebook.rebound.SpringUtil;
 import com.nineoldandroids.animation.Animator;
 import com.nineoldandroids.animation.AnimatorSet;
 import com.nineoldandroids.animation.ObjectAnimator;
@@ -39,19 +35,19 @@ public class BaseActivity extends AppCompatActivity {
     public float Width;
     // 屏幕高度
     public float Height;
+    protected View forgroundView;
+    protected ImageView showimg;
 
-    protected  ImageView showimg;
-
-    private final Spring mSpring = SpringSystem
-            .create()
-            .createSpring()
-            .addListener(new ExampleSpringListener());
+//    private final Spring mSpring = SpringSystem
+//            .create()
+//            .createSpring()
+//            .addListener(new ExampleSpringListener());
 
     private RelativeLayout MainView;
 
     protected ImageBDInfo bdInfo;
     protected ImageInfo imageInfo;
-    private float size,size_h;
+    private float size, size_h;
 
     private float img_w;
     private float img_h;
@@ -69,7 +65,7 @@ public class BaseActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        DisplayMetrics dm =getResources().getDisplayMetrics();
+        DisplayMetrics dm = getResources().getDisplayMetrics();
         Width = dm.widthPixels;
         Height = dm.heightPixels;
         setToolbar(0xff009688);
@@ -81,7 +77,7 @@ public class BaseActivity extends AppCompatActivity {
         titleBarHeight = contentTop - statusBarHeight;
     }
 
-    protected void setToolbar(int color){
+    protected void setToolbar(int color) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             setTranslucentStatus(true);
         }
@@ -109,9 +105,9 @@ public class BaseActivity extends AppCompatActivity {
     }
 
     /**
-     *添加头部
+     * 添加头部
      */
-    protected void AddToolbar(){
+    protected void AddToolbar() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.id_toolbar);
         toolbar.setLogo(R.mipmap.ic_launcher);
         setSupportActionBar(toolbar);
@@ -122,7 +118,7 @@ public class BaseActivity extends AppCompatActivity {
      * 获取资源
      */
     protected void findID() {
-        MainView = (RelativeLayout)findViewById(R.id.MainView);
+        MainView = (RelativeLayout) findViewById(R.id.MainView);
     }
 
     /**
@@ -147,8 +143,7 @@ public class BaseActivity extends AppCompatActivity {
     /**
      * 显示提示信息
      *
-     * @param text
-     *            提示文本
+     * @param text 提示文本
      */
     public void showToast(String text) {
         if (mToast == null) {
@@ -169,85 +164,101 @@ public class BaseActivity extends AppCompatActivity {
         }
     }
 
-    protected void getValue(){
+    protected void getValue() {
         showimg = new ImageView(this);
         showimg.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        ImageLoaders.setsendimg(imageInfo.url,showimg);
+        ImageLoaders.setsendimg(imageInfo.url, showimg);
         img_w = bdInfo.width;
         img_h = bdInfo.height;
-        size = Width/img_w;
+        size = Width / img_w;
         // Wait for layout.
-        y_img_h = imageInfo.height*Width/imageInfo.width;
-        size_h = y_img_h/img_h;
-        RelativeLayout.LayoutParams p = new RelativeLayout.LayoutParams((int)bdInfo.width,(int)bdInfo.height);
+        y_img_h = imageInfo.height * Width / imageInfo.width;
+        size_h = y_img_h / img_h;
+        RelativeLayout.LayoutParams p = new RelativeLayout.LayoutParams((int) bdInfo.width, (int) bdInfo.height);
         showimg.setLayoutParams(p);
-        p.setMargins((int)bdInfo.x,(int)bdInfo.y,(int)(Width - (bdInfo.x+bdInfo.width)),(int)(Height - (bdInfo.y + bdInfo.height)));
+        p.setMargins((int) bdInfo.x, (int) bdInfo.y, (int) (Width - (bdInfo.x + bdInfo.width)), (int) (Height - (bdInfo.y + bdInfo.height)));
         MainView.addView(showimg);
+        MainView.setVisibility(View.VISIBLE);
         showimg.setVisibility(View.VISIBLE);
         new Handler().postDelayed(new Runnable() {
             public void run() {
-                setShowimage();
+                showEntryAnim();
             }
-        }, 300);
+        }, 10);
 
 
     }
 
 
-    protected void setShowimage(){
-        if (mSpring.getEndValue() == 0){
-            mSpring.setSpringConfig(SpringConfig.fromOrigamiTensionAndFriction(170, 5));
-            tx = Width/2 - (bdInfo.x+img_w/2);
-            ty = Height/2-(bdInfo.y+img_h/2);
-            MoveView();
-            return;
-        }
-        mSpring.setSpringConfig(SpringConfig.fromOrigamiTensionAndFriction(1, 5));
-        mSpring.setEndValue(0);
+//    protected void setShowimage(){
+//        if (mSpring.getEndValue() == 0){
+//            mSpring.setSpringConfig(SpringConfig.fromOrigamiTensionAndFriction(170, 5));
+//            tx = Width/2 - (bdInfo.x+img_w/2);
+//            ty = Height/2-(bdInfo.y+img_h/2);
+//            MoveView();
+//            return;
+//        }
+//        mSpring.setSpringConfig(SpringConfig.fromOrigamiTensionAndFriction(1, 5));
+//        mSpring.setEndValue(0);
+//        new Handler().postDelayed(new Runnable() {
+//            public void run() {
+//                //execute the task
+//                MoveBackView();
+//            }
+//        }, 300);
+//
+//    }
+
+    protected void showEntryAnim() {
+        tx = Width / 2 - (bdInfo.x + img_w / 2);
+        ty = Height / 2 - (bdInfo.y + img_h / 2);
+        MoveView();
+    }
+
+    protected void showExitAnim() {
         new Handler().postDelayed(new Runnable() {
             public void run() {
                 //execute the task
                 MoveBackView();
             }
-        }, 300);
+        }, 10);
+    }
+
+//    private class ExampleSpringListener implements SpringListener {
+//
+//        @Override
+//        public void onSpringUpdate(Spring spring) {
+//            double CurrentValue = spring.getCurrentValue();
+//            float mappedValue = (float) SpringUtil.mapValueFromRangeToRange(CurrentValue, 0, 1, 1, size);
+//            float mapy = (float) SpringUtil.mapValueFromRangeToRange(CurrentValue, 0, 1, 1, size_h);
+//            showimg.setScaleX(mappedValue);
+//            showimg.setScaleY(mapy);
+//            if (CurrentValue == 1) {
+//                EndSoring();
+//            }
+//        }
+//
+//        @Override
+//        public void onSpringAtRest(Spring spring) {
+//
+//        }
+//
+//        @Override
+//        public void onSpringActivate(Spring spring) {
+//
+//        }
+//
+//        @Override
+//        public void onSpringEndStateChange(Spring spring) {
+//
+//        }
+//    }
+
+    protected void EndSoring() {
 
     }
 
-    private class ExampleSpringListener implements SpringListener {
-
-        @Override
-        public void onSpringUpdate(Spring spring) {
-            double CurrentValue = spring.getCurrentValue();
-            float mappedValue = (float) SpringUtil.mapValueFromRangeToRange(CurrentValue, 0, 1, 1, size);
-            float mapy =  (float) SpringUtil.mapValueFromRangeToRange(CurrentValue, 0, 1, 1, size_h);
-            showimg.setScaleX(mappedValue);
-            showimg.setScaleY(mapy);
-            if (CurrentValue == 1){
-                EndSoring();
-            }
-        }
-
-        @Override
-        public void onSpringAtRest(Spring spring) {
-
-        }
-
-        @Override
-        public void onSpringActivate(Spring spring) {
-
-        }
-
-        @Override
-        public void onSpringEndStateChange(Spring spring) {
-
-        }
-    }
-
-    protected void EndSoring(){
-
-    }
-
-    protected  void EndMove(){
+    protected void EndMove() {
 
     }
 
@@ -272,16 +283,16 @@ public class BaseActivity extends AppCompatActivity {
     }
 
 
-    private void MoveView(){
-
-        ObjectAnimator.ofFloat(MainView,"alpha",0.8f).setDuration(0).start();
-        MainView.setVisibility(View.VISIBLE);
+    private void MoveView() {
         AnimatorSet set = new AnimatorSet();
         set.playTogether(
-                ObjectAnimator.ofFloat(showimg, "translationX",tx).setDuration(200),
-                ObjectAnimator.ofFloat(showimg, "translationY",ty).setDuration(200),
-                ObjectAnimator.ofFloat(MainView,"alpha",1).setDuration(200)
-
+                ObjectAnimator.ofFloat(showimg, "translationX", tx).setDuration(200),
+                ObjectAnimator.ofFloat(showimg, "translationY", ty).setDuration(200),
+                ObjectAnimator.ofFloat(MainView, "alpha", 1).setDuration(200),
+                ObjectAnimator.ofFloat(showimg, "scaleX", 1, size).setDuration(200),
+                ObjectAnimator.ofFloat(showimg, "scaleY", 1, size_h).setDuration(200),
+                ObjectAnimator.ofFloat(showimg, "alpha", 1f, 0.2f).setDuration(200),
+                ObjectAnimator.ofFloat(MainView, "alpha", 1f).setDuration(0)
         );
         set.addListener(new Animator.AnimatorListener() {
             @Override
@@ -292,7 +303,7 @@ public class BaseActivity extends AppCompatActivity {
             @Override
             public void onAnimationEnd(Animator animator) {
                 showimg.setScaleType(ImageView.ScaleType.FIT_XY);
-                mSpring.setEndValue(1);
+                EndSoring();
             }
 
             @Override
@@ -309,34 +320,62 @@ public class BaseActivity extends AppCompatActivity {
 
     }
 
-    private void MoveBackView(){
-        AnimatorSet set = new AnimatorSet();
-        set.playTogether(
-                ObjectAnimator.ofFloat(showimg, "translationX",to_x).setDuration(200),
-                ObjectAnimator.ofFloat(showimg, "translationY",to_y).setDuration(200)
-        );
-        set.addListener(new Animator.AnimatorListener() {
+    private void MoveBackView() {
+        AnimatorSet set1 = new AnimatorSet();
+        set1.playTogether(ObjectAnimator.ofFloat(showimg, "alpha", 1f).setDuration(20),
+                ObjectAnimator.ofFloat(forgroundView, "alpha", 0.2f).setDuration(20));
+        set1.addListener(new Animator.AnimatorListener() {
             @Override
-            public void onAnimationStart(Animator animator) {
-                showimg.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            }
-
-            @Override
-            public void onAnimationEnd(Animator animator) {
-                EndMove();
-            }
-
-            @Override
-            public void onAnimationCancel(Animator animator) {
+            public void onAnimationStart(Animator animation) {
 
             }
 
             @Override
-            public void onAnimationRepeat(Animator animator) {
+            public void onAnimationEnd(Animator animation) {
+                forgroundView.setVisibility(View.GONE);
+                showimg.setVisibility(View.VISIBLE);
+                AnimatorSet set = new AnimatorSet();
+                set.playTogether(
+                        ObjectAnimator.ofFloat(showimg, "translationX", to_x).setDuration(200),
+                        ObjectAnimator.ofFloat(showimg, "translationY", to_y).setDuration(200),
+                        ObjectAnimator.ofFloat(showimg, "scaleX", 1, 0).setDuration(200),
+                        ObjectAnimator.ofFloat(showimg, "scaleY", 1, 0).setDuration(200)
+                );
+                set.addListener(new Animator.AnimatorListener() {
+                    @Override
+                    public void onAnimationStart(Animator animator) {
+                        showimg.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animator animator) {
+                        EndMove();
+                    }
+
+                    @Override
+                    public void onAnimationCancel(Animator animator) {
+
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animator animator) {
+
+                    }
+                });
+                set.start();
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
 
             }
         });
-        set.start();
+        set1.start();
     }
 
 }
