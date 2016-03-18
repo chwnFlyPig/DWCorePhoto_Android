@@ -24,7 +24,7 @@
             android:theme="@style/Theme" />
         <activity
             android:name=".PreviewImage"
-            android:theme="@style/Theme" />
+            android:theme="@style/BrowseActivityStyle" />
         <activity
             android:name=".ListViewActivity"
             android:theme="@style/Theme" >

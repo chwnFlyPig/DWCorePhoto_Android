@@ -5,13 +5,13 @@ import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
@@ -185,8 +185,6 @@ public class BaseActivity extends AppCompatActivity {
                 showEntryAnim();
             }
         }, 10);
-
-
     }
 
 
@@ -292,7 +290,7 @@ public class BaseActivity extends AppCompatActivity {
                 ObjectAnimator.ofFloat(showimg, "scaleX", 1, size).setDuration(200),
                 ObjectAnimator.ofFloat(showimg, "scaleY", 1, size_h).setDuration(200),
                 ObjectAnimator.ofFloat(showimg, "alpha", 1f, 0.2f).setDuration(200),
-                ObjectAnimator.ofFloat(MainView, "alpha", 1f).setDuration(0)
+                ObjectAnimator.ofFloat(forgroundView, "alpha", 1f).setDuration(200)
         );
         set.addListener(new Animator.AnimatorListener() {
             @Override
@@ -302,7 +300,6 @@ public class BaseActivity extends AppCompatActivity {
 
             @Override
             public void onAnimationEnd(Animator animator) {
-                showimg.setScaleType(ImageView.ScaleType.FIT_XY);
                 EndSoring();
             }
 
@@ -321,6 +318,7 @@ public class BaseActivity extends AppCompatActivity {
     }
 
     private void MoveBackView() {
+        MainView.setBackgroundColor(getResources().getColor(R.color.transparent));
         AnimatorSet set1 = new AnimatorSet();
         set1.playTogether(ObjectAnimator.ofFloat(showimg, "alpha", 1f).setDuration(20),
                 ObjectAnimator.ofFloat(forgroundView, "alpha", 0.2f).setDuration(20));

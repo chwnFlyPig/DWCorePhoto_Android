@@ -164,6 +164,7 @@ public class PreviewImage extends BaseActivity implements OnPageChangeListener {
 
                 @Override
                 public void onViewTap(View arg0, float arg1, float arg2) {
+                    addrelative.setVisibility(View.GONE);
                     showExitAnim();
 //                    finish();
                 }
@@ -209,6 +210,7 @@ public class PreviewImage extends BaseActivity implements OnPageChangeListener {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
+            addrelative.setVisibility(View.GONE);
             showExitAnim();
         }
         return true;
