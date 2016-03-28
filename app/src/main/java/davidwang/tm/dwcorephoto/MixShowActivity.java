@@ -9,7 +9,7 @@ import android.widget.ImageView;
 import java.util.ArrayList;
 
 import davidwang.tm.adapter.MixListAdapter;
-import davidwang.tm.model.ImageInfo;
+import davidwang.tm.model.ImageBrowseBean;
 import davidwang.tm.model.Mixinfo;
 import davidwang.tm.view.PullToZoomListView;
 
@@ -77,26 +77,26 @@ public class MixShowActivity extends BaseActivity implements AdapterView.OnItemC
 
     }
 
-    private ArrayList<ImageInfo> AddData(int num,int type){
-        ArrayList<ImageInfo> data = new ArrayList<ImageInfo>();
+    private ArrayList<ImageBrowseBean> AddData(int num,int type){
+        ArrayList<ImageBrowseBean> data = new ArrayList<>();
         for (int i = 0 ; i < num; i++){
             if (type == 0){
-                ImageInfo info = new ImageInfo();
-                info.url = "http://img4q.duitang.com/uploads/item/201408/11/20140811141753_iNtAF.jpeg";
-                info.width = 1280;
-                info.height = 720;
+                ImageBrowseBean info = new ImageBrowseBean();
+                info.setUrl("http://img4q.duitang.com/uploads/item/201408/11/20140811141753_iNtAF.jpeg");
+                info.setWidth(1280);
+                info.setHeight(720);
                 data.add(info);
             }else if(type == 1) {
-                ImageInfo info = new ImageInfo();
-                info.url = "http://article.joyme.com/article/uploads/allimg/140812/101I01291-10.jpg";
-                info.width = 640;
-                info.height = 960;
+                ImageBrowseBean info = new ImageBrowseBean();
+                info.setUrl("http://article.joyme.com/article/uploads/allimg/140812/101I01291-10.jpg");
+                info.setWidth(640);
+                info.setHeight(960);
                 data.add(info);
             }else{
-                ImageInfo info = new ImageInfo();
-                info.url = "http://h.hiphotos.baidu.com/album/scrop%3D236%3Bq%3D90/sign=2fab0be130adcbef056a3959dc921cee/4b90f603738da977c61bb40eb151f8198618e3db.jpg";
-                info.width = 236;
-                info.height = 236;
+                ImageBrowseBean info = new ImageBrowseBean();
+                info.setUrl("http://h.hiphotos.baidu.com/album/scrop%3D236%3Bq%3D90/sign=2fab0be130adcbef056a3959dc921cee/4b90f603738da977c61bb40eb151f8198618e3db.jpg");
+                info.setWidth(236);
+                info.setHeight(236);
                 data.add(info);
             }
         }

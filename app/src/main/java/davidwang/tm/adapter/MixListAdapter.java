@@ -2,6 +2,7 @@ package davidwang.tm.adapter;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Rect;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,8 +17,9 @@ import java.util.ArrayList;
 import davidwang.tm.dwcorephoto.MixShowActivity;
 import davidwang.tm.dwcorephoto.PreviewImage;
 import davidwang.tm.dwcorephoto.R;
-import davidwang.tm.model.ImageBDInfo;
-import davidwang.tm.model.ImageInfo;
+import davidwang.tm.model.ImageBrowseBean;
+import davidwang.tm.model.ImageBrowseParam;
+import davidwang.tm.model.ImageBrowseShareBean;
 import davidwang.tm.model.Mixinfo;
 import davidwang.tm.tools.ImageLoaders;
 
@@ -28,14 +30,14 @@ public class MixListAdapter  extends BaseAdapter {
 
     private Context context;
     private ArrayList<Mixinfo> data;
-    private ImageBDInfo bdInfo;
+    private ImageBrowseShareBean bdInfo;
     private MixShowActivity activity;
     private int ImagaId[] = {R.id.img_0,R.id.img_1,R.id.img_2,R.id.img_3,R.id.img_4,R.id.img_5,R.id.img_6,R.id.img_7,R.id.img_8};
 
     public MixListAdapter(Context context, ArrayList<Mixinfo> data) {
         this.context = context;
         this.data = data;
-        bdInfo = new ImageBDInfo();
+        bdInfo = new ImageBrowseShareBean();
         activity = (MixShowActivity)context;
     }
 
@@ -85,9 +87,9 @@ public class MixListAdapter  extends BaseAdapter {
         if (info.data.size() == 1){
             holder.showimage.setVisibility(View.VISIBLE);
             holder.gridview.setVisibility(View.GONE);
-            ImageInfo imageInfo = info.data.get(0);
-            float w = imageInfo.width;
-            float h = imageInfo.height;
+            ImageBrowseBean imageInfo = info.data.get(0);
+            float w = imageInfo.getWidth();
+            float h = imageInfo.getHeight();
             float width = 0.0f;
             float height = 0.0f;
             if (w > h){
@@ -98,7 +100,7 @@ public class MixListAdapter  extends BaseAdapter {
                 width = activity.Width/2;
             }
             height = width*h/w;
-            ImageLoaders.setsendimg(imageInfo.url, holder.showimage);
+            ImageLoaders.setsendimg(imageInfo.getUrl(), holder.showimage);
             holder.showimage.getLayoutParams().width = (int)width;
             holder.showimage.getLayoutParams().height = (int)height;
             holder.showimage.setOnClickListener(new SingleOnclick(position,holder.showimage));
@@ -118,11 +120,11 @@ public class MixListAdapter  extends BaseAdapter {
             }
 
             for (int i = 0 ; i < info.data.size(); i++){
-                ImageInfo imageInfo = info.data.get(i);
+                ImageBrowseBean imageInfo = info.data.get(i);
                 holder.imgview[i].setVisibility(View.VISIBLE);
                 holder.imgview[i].getLayoutParams().width = (int)width;
                 holder.imgview[i].getLayoutParams().height = (int)width;
-                ImageLoaders.setsendimg(imageInfo.url, holder.imgview[i]);
+                ImageLoaders.setsendimg(imageInfo.getUrl(), holder.imgview[i]);
                 holder.imgview[i].setOnClickListener(new GridOnclick(position,holder.imgview[i],i,holder.gridview));
             }
         }
@@ -151,28 +153,20 @@ public class MixListAdapter  extends BaseAdapter {
 
         @Override
         public void onClick(View v) {
-
-            View c = activity.mixlist.getChildAt(0);
-            int top = c.getTop();
-            int firstVisiblePosition = activity.mixlist.getFirstVisiblePosition();
-
-            float height  = 0.0f;
-            for (int i = 0 ; i < ((index + 1) - firstVisiblePosition) ; i++){
-                View view = activity.mixlist.getChildAt(i);
-                height += view.getHeight();
-            }
-            bdInfo.x = imageView.getLeft();
-            bdInfo.y = imageView.getTop() +  height + top + activity.mixlist.getTop();
-            bdInfo.width = imageView.getLayoutParams().width;
-            bdInfo.height = imageView.getLayoutParams().height;
-            Intent intent = new Intent(context, PreviewImage.class);
-            ArrayList<ImageInfo> info = data.get(index).data;
-            Log.e("1",info.toString());
-            intent.putExtra("data", (Serializable) info);
-            intent.putExtra("bdinfo",bdInfo);
-            intent.putExtra("index",0);
-            intent.putExtra("type",0);
-            context.startActivity(intent);
+            ArrayList<ImageBrowseBean> info = data.get(index).data;
+            Rect rect = new Rect();
+            v.getGlobalVisibleRect(rect);
+            ImageBrowseShareBean bdInfo = new ImageBrowseShareBean();
+            bdInfo.setWidth(rect.width());
+            bdInfo.setHeight(rect.height());
+            bdInfo.setX(rect.left);
+            bdInfo.setY(rect.top);
+            ImageBrowseParam beans = new ImageBrowseParam();
+            beans.setBrowseBeanList(info);
+            beans.setIndex(0);
+            beans.setShareBean(bdInfo);
+            beans.setType(PreviewImage.PHOTO_BROWSE_TYPE_MIX);
+            context.startActivity(PreviewImage.newIntent(context, beans));
         }
     }
 
@@ -192,26 +186,20 @@ public class MixListAdapter  extends BaseAdapter {
 
         @Override
         public void onClick(View v) {
-            View c = activity.mixlist.getChildAt(0);
-            int top = c.getTop();
-            int firstVisiblePosition = activity.mixlist.getFirstVisiblePosition();
-            float height  = 0.0f;
-            for (int i = 0 ; i < ((index + 1) - firstVisiblePosition) ; i++){
-                View view = activity.mixlist.getChildAt(i);
-                height += view.getHeight();
-            }
-            bdInfo.x = imageView.getLeft() + gridLayout.getLeft();
-            bdInfo.y = gridLayout.getTop()+ imageView.getTop() + height + top + activity.mixlist.getTop();
-            bdInfo.width = imageView.getLayoutParams().width;
-            bdInfo.height = imageView.getLayoutParams().height;
-            Intent intent = new Intent(context, PreviewImage.class);
-            ArrayList<ImageInfo> info = data.get(index).data;
-            Log.e("1",info.toString());
-            intent.putExtra("data", (Serializable) info);
-            intent.putExtra("bdinfo",bdInfo);
-            intent.putExtra("index",row);
-            intent.putExtra("type",3);
-            context.startActivity(intent);
+            ArrayList<ImageBrowseBean> info = data.get(index).data;
+            Rect rect = new Rect();
+            v.getGlobalVisibleRect(rect);
+            ImageBrowseShareBean bdInfo = new ImageBrowseShareBean();
+            bdInfo.setWidth(rect.width());
+            bdInfo.setHeight(rect.height());
+            bdInfo.setX(rect.left);
+            bdInfo.setY(rect.top);
+            ImageBrowseParam beans = new ImageBrowseParam();
+            beans.setBrowseBeanList(info);
+            beans.setIndex(row);
+            beans.setShareBean(bdInfo);
+            beans.setType(PreviewImage.PHOTO_BROWSE_TYPE_GRID);
+            context.startActivity(PreviewImage.newIntent(context, beans));
         }
     }
 

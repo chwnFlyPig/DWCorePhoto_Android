@@ -2,6 +2,7 @@ package davidwang.tm.adapter;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Rect;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -13,23 +14,24 @@ import java.util.ArrayList;
 import davidwang.tm.dwcorephoto.ListViewActivity;
 import davidwang.tm.dwcorephoto.PreviewImage;
 import davidwang.tm.dwcorephoto.R;
-import davidwang.tm.model.ImageBDInfo;
-import davidwang.tm.model.ImageInfo;
+import davidwang.tm.model.ImageBrowseBean;
+import davidwang.tm.model.ImageBrowseParam;
+import davidwang.tm.model.ImageBrowseShareBean;
 import davidwang.tm.tools.ImageLoaders;
 
 /**
  * Created by DavidWang on 15/9/2.
  */
-public class ListViewAdapter extends BaseAdapter{
+public class ListViewAdapter extends BaseAdapter {
 
     private Context context;
-    private ArrayList<ImageInfo> data;
-    private ImageBDInfo bdInfo;
+    private ArrayList<ImageBrowseBean> data;
+    private ImageBrowseShareBean bdInfo;
 
-    public ListViewAdapter(Context context, ArrayList<ImageInfo> data) {
+    public ListViewAdapter(Context context, ArrayList<ImageBrowseBean> data) {
         this.context = context;
         this.data = data;
-        bdInfo = new ImageBDInfo();
+        bdInfo = new ImageBrowseShareBean();
     }
 
     @Override
@@ -52,20 +54,20 @@ public class ListViewAdapter extends BaseAdapter{
 
     @Override
     public View getView(int position, View convertView, ViewGroup arg2) {
-        ImageInfo info = data.get(position);
+        ImageBrowseBean info = data.get(position);
         ViewHolder holder = null;
         if (convertView == null) {
             holder = new ViewHolder();
             convertView = View.inflate(context, R.layout.list_view, null);
-            holder.list_img = (ImageView)convertView.findViewById(R.id.list_img);
+            holder.list_img = (ImageView) convertView.findViewById(R.id.list_img);
 
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
 
-        ImageLoaders.setsendimg(info.url,holder.list_img);
-        holder.list_img.setOnClickListener(new ImageOnclick(position,holder.list_img));
+        ImageLoaders.setsendimg(info.getUrl(), holder.list_img);
+        holder.list_img.setOnClickListener(new ImageOnclick(position, holder.list_img));
 
         return convertView;
     }
@@ -74,32 +76,31 @@ public class ListViewAdapter extends BaseAdapter{
         ImageView list_img;
     }
 
-    private class ImageOnclick implements View.OnClickListener{
+    private class ImageOnclick implements View.OnClickListener {
 
         private int index;
         private ImageView imageView;
 
-        public ImageOnclick(int index ,ImageView imageView) {
+        public ImageOnclick(int index, ImageView imageView) {
             this.index = index;
             this.imageView = imageView;
         }
 
         @Override
         public void onClick(View v) {
-            ListViewActivity activity = (ListViewActivity)context;
-            View c = activity.listView.getChildAt(0);
-            int top = c.getTop();
-            int firstVisiblePosition = activity.listView.getFirstVisiblePosition();
-            bdInfo.x = imageView.getLeft();
-            bdInfo.y = dip2px(7) + (index - firstVisiblePosition)  * dip2px(70) + top + activity.listView.getTop();
-            bdInfo.width = imageView.getLayoutParams().width;
-            bdInfo.height = imageView.getLayoutParams().height;
-            Intent intent = new Intent(context, PreviewImage.class);
-            intent.putExtra("data", (Serializable) data);
-            intent.putExtra("bdinfo",bdInfo);
-            intent.putExtra("index",index);
-            intent.putExtra("type",1);
-            context.startActivity(intent);
+            Rect rect = new Rect();
+            v.getGlobalVisibleRect(rect);
+            ImageBrowseShareBean bdInfo = new ImageBrowseShareBean();
+            bdInfo.setWidth(rect.width());
+            bdInfo.setHeight(rect.height());
+            bdInfo.setX(rect.left);
+            bdInfo.setY(rect.top);
+            ImageBrowseParam beans = new ImageBrowseParam();
+            beans.setBrowseBeanList(data);
+            beans.setIndex(index);
+            beans.setShareBean(bdInfo);
+            beans.setType(PreviewImage.PHOTO_BROWSE_TYPE_LIST);
+            context.startActivity(PreviewImage.newIntent(context, beans));
         }
     }
 

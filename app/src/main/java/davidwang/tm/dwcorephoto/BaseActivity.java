@@ -5,11 +5,11 @@ import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
@@ -21,8 +21,8 @@ import com.nineoldandroids.animation.AnimatorSet;
 import com.nineoldandroids.animation.ObjectAnimator;
 import com.readystatesoftware.systembartint.SystemBarTintManager;
 
-import davidwang.tm.model.ImageBDInfo;
-import davidwang.tm.model.ImageInfo;
+import davidwang.tm.model.ImageBrowseBean;
+import davidwang.tm.model.ImageBrowseShareBean;
 import davidwang.tm.tools.ImageLoaders;
 
 /**
@@ -37,17 +37,16 @@ public class BaseActivity extends AppCompatActivity {
     public float Height;
     protected View forgroundView;
     protected ImageView showimg;
+    protected ViewGroup rootView;
 
 //    private final Spring mSpring = SpringSystem
 //            .create()
 //            .createSpring()
 //            .addListener(new ExampleSpringListener());
 
-    private RelativeLayout MainView;
-
-    protected ImageBDInfo bdInfo;
-    protected ImageInfo imageInfo;
-    private float size, size_h;
+    protected ImageBrowseShareBean shareBean;
+    protected ImageBrowseBean imageInfo;
+    private float size, size_h, minSize;
 
     private float img_w;
     private float img_h;
@@ -118,7 +117,7 @@ public class BaseActivity extends AppCompatActivity {
      * 获取资源
      */
     protected void findID() {
-        MainView = (RelativeLayout) findViewById(R.id.MainView);
+        rootView = (RelativeLayout) findViewById(R.id.rl_root_view);
     }
 
     /**
@@ -164,21 +163,22 @@ public class BaseActivity extends AppCompatActivity {
         }
     }
 
-    protected void getValue() {
+    protected void showShareView() {
         showimg = new ImageView(this);
         showimg.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        ImageLoaders.setsendimg(imageInfo.url, showimg);
-        img_w = bdInfo.width;
-        img_h = bdInfo.height;
+        ImageLoaders.setsendimg(imageInfo.getUrl(), showimg);
+        img_w = shareBean.getWidth();
+        img_h = shareBean.getHeight();
         size = Width / img_w;
-        // Wait for layout.
-        y_img_h = imageInfo.height * Width / imageInfo.width;
+        y_img_h = imageInfo.getHeight() * Width / imageInfo.getWidth();
         size_h = y_img_h / img_h;
-        RelativeLayout.LayoutParams p = new RelativeLayout.LayoutParams((int) bdInfo.width, (int) bdInfo.height);
+        minSize = Math.min(size, size_h);
+        RelativeLayout.LayoutParams p = new RelativeLayout.LayoutParams((int) img_w, (int) img_h);
         showimg.setLayoutParams(p);
-        p.setMargins((int) bdInfo.x, (int) bdInfo.y, (int) (Width - (bdInfo.x + bdInfo.width)), (int) (Height - (bdInfo.y + bdInfo.height)));
-        MainView.addView(showimg);
-        MainView.setVisibility(View.VISIBLE);
+        p.setMargins((int) (shareBean.getX()), (int) (shareBean.getY()), (int) (Width - (shareBean.getX() + img_w)), (int) (Height - (shareBean.getY() + img_h)));
+        showimg.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        rootView.addView(showimg);
+        rootView.setVisibility(View.VISIBLE);
         showimg.setVisibility(View.VISIBLE);
         new Handler().postDelayed(new Runnable() {
             public void run() {
@@ -206,21 +206,6 @@ public class BaseActivity extends AppCompatActivity {
 //        }, 300);
 //
 //    }
-
-    protected void showEntryAnim() {
-        tx = Width / 2 - (bdInfo.x + img_w / 2);
-        ty = Height / 2 - (bdInfo.y + img_h / 2);
-        MoveView();
-    }
-
-    protected void showExitAnim() {
-        new Handler().postDelayed(new Runnable() {
-            public void run() {
-                //execute the task
-                MoveBackView();
-            }
-        }, 10);
-    }
 
 //    private class ExampleSpringListener implements SpringListener {
 //
@@ -252,21 +237,6 @@ public class BaseActivity extends AppCompatActivity {
 //        }
 //    }
 
-    protected void EndSoring() {
-
-    }
-
-    protected void EndMove() {
-
-    }
-
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-
-    }
-
-
     public int dip2px(float dpValue) {
         final float scale = getResources().getDisplayMetrics().density;
         return (int) (dpValue * scale + 0.5f);
@@ -280,17 +250,32 @@ public class BaseActivity extends AppCompatActivity {
         return (int) (pxValue / scale + 0.5f);
     }
 
+    protected void showEntryAnim() {
+        tx = Width / 2 - (shareBean.getX() + img_w / 2);
+        ty = Height / 2 - (shareBean.getY() + img_h / 2);
+        moveView();
+    }
 
-    private void MoveView() {
+    protected void showExitAnim() {
+        new Handler().postDelayed(new Runnable() {
+            public void run() {
+                //execute the task
+                moveBackView();
+            }
+        }, 10);
+    }
+
+    private void moveView() {
+        forgroundView.setVisibility(View.VISIBLE);
         AnimatorSet set = new AnimatorSet();
         set.playTogether(
-                ObjectAnimator.ofFloat(showimg, "translationX", tx).setDuration(200),
-                ObjectAnimator.ofFloat(showimg, "translationY", ty).setDuration(200),
-                ObjectAnimator.ofFloat(MainView, "alpha", 1).setDuration(200),
-                ObjectAnimator.ofFloat(showimg, "scaleX", 1, size).setDuration(200),
-                ObjectAnimator.ofFloat(showimg, "scaleY", 1, size_h).setDuration(200),
-                ObjectAnimator.ofFloat(showimg, "alpha", 1f, 0.2f).setDuration(200),
-                ObjectAnimator.ofFloat(forgroundView, "alpha", 1f).setDuration(200)
+                ObjectAnimator.ofFloat(showimg, "translationX", tx).setDuration(400),
+                ObjectAnimator.ofFloat(showimg, "translationY", ty).setDuration(400),
+                ObjectAnimator.ofFloat(rootView, "alpha", 1).setDuration(300),
+                ObjectAnimator.ofFloat(showimg, "scaleX", 1, size).setDuration(300),
+                ObjectAnimator.ofFloat(showimg, "scaleY", 1, minSize).setDuration(300),
+                ObjectAnimator.ofFloat(showimg, "alpha", 1f, 0f).setDuration(200),
+                ObjectAnimator.ofFloat(forgroundView, "alpha", 0f, 1f).setDuration(300)
         );
         set.addListener(new Animator.AnimatorListener() {
             @Override
@@ -300,7 +285,7 @@ public class BaseActivity extends AppCompatActivity {
 
             @Override
             public void onAnimationEnd(Animator animator) {
-                EndSoring();
+                endEntry();
             }
 
             @Override
@@ -317,63 +302,53 @@ public class BaseActivity extends AppCompatActivity {
 
     }
 
-    private void MoveBackView() {
-        MainView.setBackgroundColor(getResources().getColor(R.color.transparent));
-        AnimatorSet set1 = new AnimatorSet();
-        set1.playTogether(ObjectAnimator.ofFloat(showimg, "alpha", 1f).setDuration(20),
-                ObjectAnimator.ofFloat(forgroundView, "alpha", 0.2f).setDuration(20));
-        set1.addListener(new Animator.AnimatorListener() {
+    private void moveBackView() {
+        if (shareBean == null) {
+            endExit();
+            return;
+        }
+        rootView.setBackgroundColor(getResources().getColor(R.color.transparent));
+        showimg.setVisibility(View.VISIBLE);
+        AnimatorSet set = new AnimatorSet();
+        set.playTogether(
+                ObjectAnimator.ofFloat(forgroundView, "alpha", 0f).setDuration(100),
+                ObjectAnimator.ofFloat(showimg, "alpha", 0f, 0.6f, 0.4f).setDuration(300),
+                ObjectAnimator.ofFloat(showimg, "translationX", to_x).setDuration(400),
+                ObjectAnimator.ofFloat(showimg, "translationY", to_y).setDuration(400),
+                ObjectAnimator.ofFloat(showimg, "scaleX", 1, 0f).setDuration(300),
+                ObjectAnimator.ofFloat(showimg, "scaleY", 1, 0f).setDuration(300)
+        );
+        set.addListener(new Animator.AnimatorListener() {
             @Override
-            public void onAnimationStart(Animator animation) {
+            public void onAnimationStart(Animator animator) {
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animator) {
+                endExit();
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animator) {
 
             }
 
             @Override
-            public void onAnimationEnd(Animator animation) {
-                forgroundView.setVisibility(View.GONE);
-                showimg.setVisibility(View.VISIBLE);
-                AnimatorSet set = new AnimatorSet();
-                set.playTogether(
-                        ObjectAnimator.ofFloat(showimg, "translationX", to_x).setDuration(200),
-                        ObjectAnimator.ofFloat(showimg, "translationY", to_y).setDuration(200),
-                        ObjectAnimator.ofFloat(showimg, "scaleX", 1, 0).setDuration(200),
-                        ObjectAnimator.ofFloat(showimg, "scaleY", 1, 0).setDuration(200)
-                );
-                set.addListener(new Animator.AnimatorListener() {
-                    @Override
-                    public void onAnimationStart(Animator animator) {
-                        showimg.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                    }
-
-                    @Override
-                    public void onAnimationEnd(Animator animator) {
-                        EndMove();
-                    }
-
-                    @Override
-                    public void onAnimationCancel(Animator animator) {
-
-                    }
-
-                    @Override
-                    public void onAnimationRepeat(Animator animator) {
-
-                    }
-                });
-                set.start();
-            }
-
-            @Override
-            public void onAnimationCancel(Animator animation) {
-
-            }
-
-            @Override
-            public void onAnimationRepeat(Animator animation) {
+            public void onAnimationRepeat(Animator animator) {
 
             }
         });
-        set1.start();
+        set.start();
+
     }
 
+    protected void endEntry() {
+        if (showimg != null) {
+            showimg.setVisibility(View.GONE);
+        }
+    }
+
+    protected void endExit() {
+        forgroundView.setVisibility(View.GONE);
+    }
 }

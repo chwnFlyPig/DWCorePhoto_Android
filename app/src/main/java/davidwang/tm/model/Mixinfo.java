@@ -11,6 +11,6 @@ public class Mixinfo implements Serializable {
     public String username;
     public String content;
     public String userimg;
-    public ArrayList<ImageInfo> data;
+    public ArrayList<ImageBrowseBean> data;
 
 }
